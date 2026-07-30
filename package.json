@@ -1,0 +1,35 @@
+{
+  "name": "midot32-bible-lab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build:web": "vite build",
+    "build:worker": "node scripts/build-worker.mjs",
+    "build": "npm run build:web && npm run build:worker",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm run build && npm run typecheck && npm run test",
+    "cf:typegen": "wrangler types",
+    "deploy": "npm run check && wrangler deploy",
+    "deploy:dry": "npm run build && wrangler deploy --dry-run"
+  },
+  "dependencies": {
+    "lucide-react": "1.28.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "6.0.5",
+    "esbuild": "0.28.1",
+    "typescript": "5.9.3",
+    "vite": "8.2.0",
+    "vitest": "4.1.10",
+    "wrangler": "4.116.0"
+  }
+}
