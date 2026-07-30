@@ -65,6 +65,16 @@ describe("security helpers", () => {
 
   it("extracts Workers AI response shapes", () => {
     expect(__test.extractResponse({ response: "연구 결과" })).toBe("연구 결과");
+    expect(
+      __test.extractResponse({
+        choices: [{ message: { content: "정경적 종합" } }]
+      })
+    ).toBe("정경적 종합");
+    expect(
+      __test.extractResponse({
+        choices: [{ text: "<think>내부 추론</think>최종 답변" }]
+      })
+    ).toBe("최종 답변");
     expect(() => __test.extractResponse({ nope: true })).toThrow();
   });
 });

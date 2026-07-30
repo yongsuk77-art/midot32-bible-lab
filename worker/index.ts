@@ -9,13 +9,14 @@ interface Env {
         messages: Array<{ role: "system" | "user"; content: string }>;
         max_tokens?: number;
         temperature?: number;
+        reasoning_effort?: "low" | "medium" | "high";
       }
     ): Promise<unknown>;
   };
   APP_ACCESS_KEY: string;
 }
 
-const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+const MODEL = "@cf/zai-org/glm-4.7-flash";
 const MAX_BODY_BYTES = 32_768;
 const SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
@@ -99,7 +100,7 @@ async function handleResearch(request: Request, env: Env, requestId: string): Pr
   }
 
   const prompts = buildPrompts(validation.value);
-  const maxTokens = validation.value.depth === "deep" ? 3500 : 2300;
+  const maxTokens = validation.value.depth === "deep" ? 5200 : 3600;
   const generated = await Promise.all(
     prompts.map(async (prompt) => {
       const output = await env.AI.run(MODEL, {
@@ -108,7 +109,8 @@ async function handleResearch(request: Request, env: Env, requestId: string): Pr
           { role: "user", content: prompt.user }
         ],
         max_tokens: maxTokens,
-        temperature: 0.2
+        temperature: 0.2,
+        reasoning_effort: "low"
       });
       return {
         id: prompt.id,
@@ -191,13 +193,33 @@ function validateInput(
 }
 
 function extractResponse(output: unknown): string {
-  if (typeof output === "string") return output;
+  if (typeof output === "string") return cleanModelText(output);
   if (output && typeof output === "object") {
     const record = output as Record<string, unknown>;
-    if (typeof record.response === "string") return record.response;
-    if (typeof record.result === "string") return record.result;
+    if (typeof record.response === "string") return cleanModelText(record.response);
+    if (typeof record.result === "string") return cleanModelText(record.result);
+    if (typeof record.output_text === "string") return cleanModelText(record.output_text);
+    if (Array.isArray(record.choices) && record.choices.length > 0) {
+      const choice = record.choices[0];
+      if (choice && typeof choice === "object") {
+        const choiceRecord = choice as Record<string, unknown>;
+        if (typeof choiceRecord.text === "string") return cleanModelText(choiceRecord.text);
+        const message = choiceRecord.message;
+        if (message && typeof message === "object") {
+          const content = (message as Record<string, unknown>).content;
+          if (typeof content === "string") return cleanModelText(content);
+        }
+      }
+    }
   }
   throw new Error("Unexpected Workers AI response");
+}
+
+function cleanModelText(value: string): string {
+  const afterThinking = value.includes("</think>")
+    ? value.slice(value.lastIndexOf("</think>") + "</think>".length)
+    : value;
+  return afterThinking.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
 }
 
 async function secureEqual(left: string, right: string): Promise<boolean> {
