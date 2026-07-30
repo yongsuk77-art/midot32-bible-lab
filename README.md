@@ -23,7 +23,7 @@ tests/               요청 검증·프롬프트·보안 헬퍼 테스트
 wrangler.jsonc       Cloudflare Workers 설정
 ```
 
-Cloudflare Worker 하나가 정적 앱과 `/api/research` API를 함께 제공합니다. AI 연구는 Workers AI의 다국어 장문 모델 `@cf/zai-org/glm-4.7-flash`를 사용합니다.
+Cloudflare Worker 하나가 정적 앱과 `/api/research` API를 함께 제공합니다. AI 연구는 Workers AI의 장문·다국어 모델 `@cf/meta/llama-4-scout-17b-16e-instruct`를 사용합니다.
 
 ## 로컬 실행
 

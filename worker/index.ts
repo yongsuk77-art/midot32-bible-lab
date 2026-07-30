@@ -9,14 +9,13 @@ interface Env {
         messages: Array<{ role: "system" | "user"; content: string }>;
         max_tokens?: number;
         temperature?: number;
-        reasoning_effort?: "low" | "medium" | "high";
       }
     ): Promise<unknown>;
   };
   APP_ACCESS_KEY: string;
 }
 
-const MODEL = "@cf/zai-org/glm-4.7-flash";
+const MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 const MAX_BODY_BYTES = 32_768;
 const SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
@@ -100,7 +99,7 @@ async function handleResearch(request: Request, env: Env, requestId: string): Pr
   }
 
   const prompts = buildPrompts(validation.value);
-  const maxTokens = validation.value.depth === "deep" ? 5200 : 3600;
+  const maxTokens = validation.value.depth === "deep" ? 4500 : 3000;
   const generated = await Promise.all(
     prompts.map(async (prompt) => {
       const output = await env.AI.run(MODEL, {
@@ -109,8 +108,7 @@ async function handleResearch(request: Request, env: Env, requestId: string): Pr
           { role: "user", content: prompt.user }
         ],
         max_tokens: maxTokens,
-        temperature: 0.2,
-        reasoning_effort: "low"
+        temperature: 0.2
       });
       return {
         id: prompt.id,
